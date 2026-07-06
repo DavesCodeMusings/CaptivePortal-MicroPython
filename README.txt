@@ -17,9 +17,10 @@ Example:
 4. The microcontroller's DNS server returns the address of the microcontroller.
 5. The microcontroller's HTTP server returns a 307 Redirect to portal.html
    at the microcontroller's IP.
-6. The client machine realizes it has not received its expected portal
+6. portal.html is served from the microcontroller's flash file system. 
+7. The client machine realizes it has not received its expected portal
    detection page.
-7. The portal.html page from the microcontroller is displayed instead.
+8. The portal.html page from the microcontroller is displayed instead.
 
 At this point, a regular captive portal would ask for a login or an agreement
 to usage terms, and release the client machine to the internet. CaptivePortal-
