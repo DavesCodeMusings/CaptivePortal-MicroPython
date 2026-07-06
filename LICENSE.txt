@@ -1,0 +1,5 @@
+The MicroPython code and sample portal.html were created by David Horton and are released to the public domain.
+https://github.com/DavesCodeMusings/CaptivePortal-MicroPython
+
+favicon.ico was constructed using the web-box SVG icon created by Samuel Jones and released under the Apache 2.0 license.
+https://pictogrammers.com/library/mdi/icon/web-box/
