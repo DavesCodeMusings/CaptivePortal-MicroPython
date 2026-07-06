@@ -2,9 +2,9 @@ CaptivePortal-MicroPython
 
 A captive portal implementation in MicroPython that provides a minimal DNS
 server and HTTP server in addition to the usual MicroPython WiFi access point.
-All DNS lookups will return the microcontroller's IP address. All HTTP
-requests will return a "307 Redirect" to the microcontroller's IP address
-and the portal.html page (unless that file exists in the flash file system.)
+All DNS lookups will return the microcontroller's IP address. Any internet
+HTTP request will return a "307 Redirect" to the microcontroller's IP address
+and the portal.html page.
 
 
 Example:
@@ -13,7 +13,7 @@ Example:
 2. The client machine is assigned an IP address along with the DNS server
    address of the microcontroller.
 3. The client machine performs captive portal detection by trying to load
-   a know web URL.
+   a known web URL.
 4. The microcontroller's DNS server returns the address of the microcontroller.
 5. The microcontroller's HTTP server returns a 307 Redirect to portal.html
    at the microcontroller's IP.
