@@ -143,13 +143,15 @@ async def http_reply(file_path, redirect_ip, connection):
         file_path (string): Full path to HTML file being requested.
         connection (socket): The TCP socket to use for sending replies.
     """
+    if file_path.endswith("/"):
+        file_path += "index.html"
     try:
         size = os.stat(file_path)[6]  # Also determines if file exists.
     except OSError as e:
         print(f"Unable to access file {file_path}: {e}")
         size = None
 
-    if not size:
+    if size is None:
         print("Redirecting to portal page.")
         connection.send("HTTP/1.1 307 Temporary Redirect\r\n")
         connection.send(f"Location: http://{redirect_ip}/portal.html\r\n")
@@ -158,10 +160,16 @@ async def http_reply(file_path, redirect_ip, connection):
         connection.send("\r\n")  # Empty line signals end of headers
     else:
         print(f"Sending {file_path}")
+        if file_path.endswith(".html"):
+            content_type="text/html"
+        elif file_path.endswith(".ico"):
+            content_type = "image/x-icon"
+        else:
+            content_type = "text/html"
         connection.send("HTTP/1.1 200 OK\r\n")
         connection.send("Connection: close\r\n")
         connection.send(f"Content-Length: {size}\r\n")
-        connection.send("Content-Type: text/html\r\n")
+        connection.send(f"Content-Type: {content_type}\r\n")
         connection.send("\r\n")
         try:
             with open(file_path, 'rb') as file:
@@ -202,8 +210,13 @@ async def httpd(server_ip):
         else:
             print(f"HTTP connection from: {client_address}")
             request_bytes = connection.recv(1024)
-            request_string = request_bytes.decode('utf8')
-            request_lines = request_string.split('\r\n')
+            try:
+                request_string = request_bytes.decode('utf8')
+            except UnicodeError:
+                print(f"Bad HTTP request: {e}. Closing connection.")
+                connection.close()
+            else:
+                request_lines = request_string.split('\r\n')
             try:
                 method, target, http_version = request_lines[0].split(' ', 2)
             except ValueError as e:
