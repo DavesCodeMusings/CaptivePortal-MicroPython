@@ -132,7 +132,7 @@ def read_file_chunk(file):
             return
 
 
-async def http_reply(file_path, redirect_ip, connection):
+async def http_reply(file_path, redirect_ip, tcp_connection):
     """
     Serve HTML files from the local flash if they exist. Reply with a 302 redirect
     to http://redirect_ip/portal.html for any file not found. As a captive portal,
@@ -141,23 +141,24 @@ async def http_reply(file_path, redirect_ip, connection):
     Args:
         redirect_ip (string): Dotted-quad IPv4 address to use for 302 redirects.
         file_path (string): Full path to HTML file being requested.
-        connection (socket): The TCP socket to use for sending replies.
+        tcp_connection (socket): The TCP socket to use for sending replies.
     """
     if file_path.endswith("/"):
         file_path += "index.html"
     try:
-        size = os.stat(file_path)[6]  # Also determines if file exists.
+        file_size = os.stat(file_path)[6]  # Also determines if file exists.
     except OSError as e:
         print(f"Unable to access file {file_path}: {e}")
-        size = None
-
-    if size is None:
         print("Redirecting to portal page.")
-        connection.send("HTTP/1.1 302 Found\r\n")
-        connection.send(f"Location: http://{redirect_ip}/portal.html\r\n")
-        connection.send("Content-Length: 0\r\n")
-        connection.send("Content-Type: text/html\r\n")
-        connection.send("\r\n")  # Empty line signals end of headers
+        headers = "HTTP/1.1 302 Found\r\n"
+        headers += f"Location: http://{redirect_ip}/portal.html\r\n"
+        headers += "Content-Length: 0\r\n"
+        headers += "Content-Type: text/html\r\n"
+        headers += "\r\n"  # Empty line signals end of headers
+        try:
+            tcp_connection.send(headers)
+        except Exception as e:
+            print(f"Failed to send HTTP redirect: {e}")
     else:
         print(f"Sending {file_path}")
         if file_path.endswith(".html"):
@@ -166,19 +167,23 @@ async def http_reply(file_path, redirect_ip, connection):
             content_type = "image/x-icon"
         else:
             content_type = "text/html"
-        connection.send("HTTP/1.1 200 OK\r\n")
-        connection.send("Connection: close\r\n")
-        connection.send(f"Content-Length: {size}\r\n")
-        connection.send(f"Content-Type: {content_type}\r\n")
-        connection.send("\r\n")
+        headers = "HTTP/1.1 200 OK\r\n"
+        headers += "Connection: close\r\n"
+        headers += f"Content-Length: {file_size}\r\n"
+        headers += f"Content-Type: {content_type}\r\n"
+        headers += "\r\n"
+        try:
+            tcp_connection.send(headers)
+        except Exception as e:
+            print(f"Failed to send HTTP headers: {e}")
         try:
             with open(file_path, 'rb') as file:
                 for chunk in read_file_chunk(file):
-                    connection.send(chunk)
+                    tcp_connection.send(chunk)
         except OSError as e:
             print(f"Unable to send file {file_path}: {e}")
 
-    connection.close()
+    tcp_connection.close()
 
 
 async def httpd(server_ip):
