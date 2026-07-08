@@ -134,12 +134,12 @@ def read_file_chunk(file):
 
 async def http_reply(file_path, redirect_ip, connection):
     """
-    Serve HTML files from the local flash if they exist. Reply with a 307 redirect
+    Serve HTML files from the local flash if they exist. Reply with a 302 redirect
     to http://redirect_ip/portal.html for any file not found. As a captive portal,
     that's pretty much any page other than portal.html.
 
     Args:
-        redirect_ip (string): Dotted-quad IPv4 address to use for 307 redirects.
+        redirect_ip (string): Dotted-quad IPv4 address to use for 302 redirects.
         file_path (string): Full path to HTML file being requested.
         connection (socket): The TCP socket to use for sending replies.
     """
@@ -153,7 +153,7 @@ async def http_reply(file_path, redirect_ip, connection):
 
     if size is None:
         print("Redirecting to portal page.")
-        connection.send("HTTP/1.1 307 Temporary Redirect\r\n")
+        connection.send("HTTP/1.1 302 Found\r\n")
         connection.send(f"Location: http://{redirect_ip}/portal.html\r\n")
         connection.send("Content-Length: 0\r\n")
         connection.send("Content-Type: text/html\r\n")
