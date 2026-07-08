@@ -44,17 +44,22 @@ def dns_reply(query_packet, reply_ip, udp_socket, client_address):
         client_address (tuple): IP and port of the client who sent the query.
     """
     reply_ip_bytes = bytes(int(octet) for octet in reply_ip.split("."))
-    reply_part = b"\xc0\x0c"  # Use offset to indicate response is for the original name.
+    reply_part = (
+        b"\xc0\x0c"  # Use offset to indicate response is for the original name.
+    )
     reply_part += b"\x00\x01"  # Reply type is an A record.
     reply_part += b"\x00\x01"  # Reply class is Internet.
     reply_part += (0).to_bytes(4, "big")  # Zero time to live (TTL) avoids poisoning.
     reply_part += b"\x00\x04"  # Length of reply will be 4 octets (IPv4 address.)
     reply_part += reply_ip_bytes  # IPv4 address represented as 4 bytes (octets.)
     reply_packet = bytearray(query_packet)  # DNS includes original for reference.
-    reply_packet[2:4] = b"\x81\x00"  # Adjust flags: query answer, no server recusion, no errors.
+    reply_packet[2:4] = (
+        b"\x81\x00"  # Adjust flags: query answer, no server recusion, no errors.
+    )
     reply_packet[6:8] = b"\x00\x01"  # Indicate a single answer follows.
     reply_packet.extend(reply_part)  # Tack on the reply part.
     print(f"DNS response: {reply_packet.hex()}")
+    print(reply_ip)
     try:
         udp_socket.sendto(reply_packet, client_address)
     except OSError as e:
@@ -109,6 +114,16 @@ async def named(reply_ip):
                 and qtype == b"\x00\x01"  # IPv4 Address (A) record
                 and qclass == b"\x00\x01"  # Internet address
             ):
+                offset = 0xC
+                while True:  # While loop is providing debugging info only
+                    length = query_packet[offset]
+                    if length < 1:
+                        break  # Zero length name signals end of question section
+                    else:
+                        offset += 1
+                        print(query_packet[offset : offset + length])
+                        offset += length  # Next record's length byte
+
                 dns_reply(query_packet, reply_ip, sock, client_addr)
 
         await asyncio.sleep_ms(100)
@@ -155,6 +170,7 @@ async def http_reply(file_path, redirect_ip, tcp_connection):
         headers += "Content-Length: 0\r\n"
         headers += "Content-Type: text/html\r\n"
         headers += "\r\n"  # Empty line signals end of headers
+        print(headers)
         try:
             tcp_connection.send(headers)
         except Exception as e:
@@ -162,7 +178,7 @@ async def http_reply(file_path, redirect_ip, tcp_connection):
     else:
         print(f"Sending {file_path}")
         if file_path.endswith(".html"):
-            content_type="text/html"
+            content_type = "text/html"
         elif file_path.endswith(".ico"):
             content_type = "image/x-icon"
         else:
@@ -172,13 +188,14 @@ async def http_reply(file_path, redirect_ip, tcp_connection):
         headers += f"Content-Length: {file_size}\r\n"
         headers += f"Content-Type: {content_type}\r\n"
         headers += "\r\n"
+        print(headers)
         try:
             tcp_connection.send(headers)
         except Exception as e:
             print(f"Failed to send HTTP headers: {e}")
         else:
             try:
-                with open(file_path, 'rb') as file:
+                with open(file_path, "rb") as file:
                     for chunk in read_file_chunk(file):
                         tcp_connection.send(chunk)
             except OSError as e:
@@ -217,14 +234,14 @@ async def httpd(server_ip):
             print(f"HTTP connection from: {client_address}")
             request_bytes = connection.recv(1024)
             try:
-                request_string = request_bytes.decode('utf8')
+                request_string = request_bytes.decode("utf8")
             except UnicodeError:
                 print(f"Bad HTTP request: {e}. Closing connection.")
                 connection.close()
             else:
-                request_lines = request_string.split('\r\n')
+                request_lines = request_string.split("\r\n")
             try:
-                method, target, http_version = request_lines[0].split(' ', 2)
+                method, target, http_version = request_lines[0].split(" ", 2)
             except ValueError as e:
                 print(f"Bad HTTP request: {e}. Closing connection.")
                 connection.close()
