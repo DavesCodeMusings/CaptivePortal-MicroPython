@@ -176,12 +176,13 @@ async def http_reply(file_path, redirect_ip, tcp_connection):
             tcp_connection.send(headers)
         except Exception as e:
             print(f"Failed to send HTTP headers: {e}")
-        try:
-            with open(file_path, 'rb') as file:
-                for chunk in read_file_chunk(file):
-                    tcp_connection.send(chunk)
-        except OSError as e:
-            print(f"Unable to send file {file_path}: {e}")
+        else:
+            try:
+                with open(file_path, 'rb') as file:
+                    for chunk in read_file_chunk(file):
+                        tcp_connection.send(chunk)
+            except OSError as e:
+                print(f"Unable to send file {file_path}: {e}")
 
     tcp_connection.close()
 
