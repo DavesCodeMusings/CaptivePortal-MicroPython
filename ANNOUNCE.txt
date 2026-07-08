@@ -1,9 +1,23 @@
-Captive WiFi Portal
+I've created a captive WiFi portal as a sort of WiFi graffiti art project.
+It offers an open WiFi access point and then hijacks DNS and HTTP requests
+to deliver an HTML page from the microcontroller's flash RAM.
 
-Are there are existing microcontroller based captive portals? Yes. Some are even written in MicroPython. But this one may be unique in its use of asyncio. If nothing else, it gives some insight into an extremely minimalist DNS server and HTTP server.
+Are there are existing microcontroller based captive portals? Yes. Some
+are even written in MicroPython. But this one may be unique in its use of
+asyncio. If nothing else, it gives some insight into an extremely minimalist
+DNS server and HTTP server.
 
-This captive portal implementation uses the older method of hijacking DNS and HTTP requests to redirect to a portal.html page. Newer captive portals use a DHCP option to point client machines to a captive portal API. This can't be done in MicroPython, because there is no way to configure DHCP options for the access point. Still, it works reasonably well. (Sometimes you have to nudge it by attempting to open a site like http://example.com in a browser.)
+This captive portal implementation uses the older method of hijacking DNS
+and HTTP requests to redirect to a portal.html page. Newer captive portals
+use a DHCP option to point client machines to a captive portal API. This
+can't be done in MicroPython, because there is no way to configure DHCP
+options for the access point. Still, the old way works reasonably well.
+(Sometimes you have to nudge it by attempting to open a site like
+http://example.com in a browser.)
 
-The idea behind this project is not so much practical as it is microcontroller-based graffiti art. Construct a portal.html page with your message. Create an SSID that entices people to connect. Stash the microcontroller somewhere people will come across its SSID.
+The idea behind this project is not so much a practical portal as it is
+microcontroller-based graffiti art. Construct a portal.html page with
+your message. Create an SSID that entices people to connect. Stash the
+microcontroller somewhere people will come across its SSID.
 
 Code is at: https://github.com/DavesCodeMusings/CaptivePortal-MicroPython
