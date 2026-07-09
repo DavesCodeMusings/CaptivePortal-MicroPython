@@ -235,7 +235,7 @@ async def httpd(server_ip):
             request_bytes = connection.recv(1024)
             try:
                 request_string = request_bytes.decode("utf8")
-            except UnicodeError:
+            except UnicodeError as e:
                 print(f"Bad HTTP request: {e}. Closing connection.")
                 connection.close()
             else:
